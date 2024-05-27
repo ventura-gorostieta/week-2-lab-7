@@ -1,7 +1,7 @@
 # week-2-lab-7
 Laboratorio correspondiente a los temas de patrones de diseño
 
-## Design Problem Solving:
+## 1.- Design Problem Solving:
 **Scenario Description:** Participants are provided with a series of common software design challenges. They will need to choose appropriate design patterns to solve these specific problems effectively.
 Design Challenges:
 * **Global Configuration Management:** Design a system that ensures a single, globally accessible configuration object without access conflicts.
@@ -266,4 +266,93 @@ public class AsyncPatternExample {
 
 ```
 **Task:** Outline solutions that integrate these patterns into a cohesive design to address the challenges.
+
+## Project Execution Simulation:
+
+Para la simulacoón solicitada se hace uso de los patrones de diseño Singleton, Factory, Observer y Async para resolver los desafíos de diseño especificados. El proyecto simulado es una aplicación de gestión de documentos que requiere configuración global (singleton), creación dinámica de documentos(factory), notificación de cambios de estado(observer) y gestión de operaciones asíncronas(asyn thread).
+
+### Enfoque y Justificación
+
+**Singleton para la Gestión de Configuración Global:**
+**Enfoque:** Usar el patrón Singleton para asegurar que la configuración global del sistema sea accesible y consistente en todo momento.
+**Justificación:** El patrón Singleton garantiza una única instancia de la configuración que es compartida por todos los componentes del sistema, evitando conflictos de acceso y manteniendo la coherencia de la configuración.
+
+**Factory para la Creación Dinámica de Documentos:**
+
+**Enfoque:** Utilizar el patrón Factory para crear diferentes tipos de documentos (PDF, Word, Excel) basados en parametros de entrada.
+**Justificación:** El patrón Factory permite la creación de objetos sin especificar la clase exacta del objeto que se va a crear, facilitando la extensión del sistema para soportar nuevos tipos de documentos sin modificar el código existente.
+
+**Observer para la Notificación de Cambios de Estado:**
+
+**Enfoque:** Implementar el patrón Observer para notificar a los componentes interesados sobre cambios en el estado de otros componentes sin crear un acoplamiento fuerte.
+**Justificación:** El patrón Observer facilita la comunicación entre componentes, permitiendo que los observadores reaccionen a los cambios de estado de manera eficiente y desacoplada.
+
+**Async para la Gestión de Operaciones Asíncronas:**
+
+**Enfoque:** Utilizar el patrón Async junto con un ThreadPoolExecutor para manejar operaciones asíncronas, como llamadas a APIs externas, sin bloquear el flujo principal de la aplicación.
+**Justificación:** El patrón Async mejora la capacidad de respuesta del sistema al permitir que las operaciones largas se ejecuten en segundo plano, mientras que el ThreadPoolExecutor gestiona eficientemente los recursos del sistema.
+
+### Simulación del proyecto, tomando como base las clases y objetos del paso 1.
+
+```
+public class ProjectExecutionSimulation {
+    public static void main(String[] args) {
+        // Configuración global usando Singleton, crea una unica instancia
+        ConfigurationManager config = ConfigurationManager.getInstance();
+        config.setProperty("app.name", "Document Management System");
+
+        // Creación dinámica de documentos usando Factory, retorna el tipo de objeto según el parametro.
+        Document pdf = DocumentFactory.createDocument("pdf");
+        Document word = DocumentFactory.createDocument("word");
+        Document excel = DocumentFactory.createDocument("excel");
+
+        pdf.open();
+        word.open();
+        excel.open();
+
+        // Notificación de cambios de estado usando Observer
+        EventManager eventManager = new EventManager();
+        ConcreteObserver observer1 = new ConcreteObserver("Observer1");
+        ConcreteObserver observer2 = new ConcreteObserver("Observer2");
+        // se han generado 2 suscriptores al observer.
+        eventManager.attach(observer1);
+        eventManager.attach(observer2);
+
+        eventManager.notifyObservers("EVENT_TYPE_1", "Document opened");
+        eventManager.notifyObservers("EVENT_TYPE_2", "Document saved");
+
+        eventManager.detach(observer1);
+        eventManager.notifyObservers("EVENT_TYPE_3", "Document closed");
+
+        // Gestión de operaciones asíncronas usando Async y ThreadPoolExecutor
+        // Gestionamos mejor los recursos e hilos usando threadPoolExecutor.
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                4, 
+                8, 
+                60L, 
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(100)
+        );
+
+        AsyncManager asyncManager = new AsyncManager(executor);
+
+// se lanzan 3 tareas o simulacion de llamadas, usando async, se van a segundo plano
+        CompletableFuture<String> future1 = asyncManager.performAsyncOperation();
+        CompletableFuture<String> future2 = asyncManager.performAsyncOperation();
+        CompletableFuture<String> future3 = asyncManager.performAsyncOperation();
+
+        future1.thenAccept(result -> System.out.println("Received async result 1: " + result));
+        future2.thenAccept(result -> System.out.println("Received async result 2: " + result));
+        future3.thenAccept(result -> System.out.println("Received async result 3: " + result));
+
+        System.out.println("Main thread continues to run...");
+
+        // Usamos allOd para esperar a que todas las tareas se completen
+        CompletableFuture.allOf(future1, future2, future3).join();
+        asyncManager.shutdown();
+    }
+}
+
+```
+
 
